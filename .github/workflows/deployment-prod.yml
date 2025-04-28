@@ -1,0 +1,29 @@
+name: 프로덕트 서버 Redis 배포
+
+on:
+  pull_request:
+    branches:
+      - release
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: EC2 연결 및 Redis 이미지 실행
+        uses: appleboy/ssh-action@master 
+        with:
+          username: photique0538
+          host: ${{ secrets.HOST_PROD }}
+          key: ${{ secrets.KEY_PROD }}
+          script: |
+            sudo docker stop redis-prod
+            sudo docker rm redis-prod
+            sudo docker rmi redis:7.0
+            sudo docker pull redis:7.0
+            sudo docker run -d \
+                --name redis-prod \
+                --network backend \
+                -e TZ=Asia/Seoul \
+                -p 6379:6379 \
+                redis:7.0
